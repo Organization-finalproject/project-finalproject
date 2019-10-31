@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Insert title here</title>
+	<style type="text/css">
+		.a {
+			border: solid red 5px
+		}
+
+		span {
+			width: 150px;
+			color: red;
+		}
+
+		input {
+			border: solid gray 1px
+		}
+
+		table {
+			width: 100%
+		}
+
+		th,
+		td {
+			border: 1px gray solid;
+			text-align: center;
+			padding: 3px
+		}
+
+		h2 {
+			text-align: center
+		}
+	</style>
+	<script src="https://code.jquery.com/jquery-2.2.4.js"
+		integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI=" crossorigin="anonymous"></script>
+
+	<script type="text/javascript">
+		$(document).ready(function () {
+			var check = true;
+			$('#id').blur(function () { //아이디 체크부터
+				$.ajax({
+					type: 'get',
+					url: 'idCheck.do',
+					dataType: 'json',
+					data: 'id=' + $('#id').val(),
+					success: function (data) {
+						if (data.result == "yes") {
+							$('#isDupli').html("가입 가능!");
+							check = true;
+						}
+						else {
+							$('#isDupli').html("가입 불가능!");
+							check = false;
+						}
+					},
+					error: function (xhrReq, status, error) {
+						alert(xhrReq + " ," + status + " ," + error);
+					}
+				});
+			});
+
+			$('#joinBtn').click(function () { //가입 버튼 누를 시
+				if (check) {
+					var params = $('#inForm').serialize(); //내용들 params 에 담기
+					alert(params);
+					$.ajax({
+						type: 'get',
+						url: 'join.do',
+						dataType: 'json',
+						data: params,
+						success: function (data) { //가입 성공하면
+							if(data.result == "yes"){//yes 가 오면 insert된것
+								getList(); //리스트 가져옴
+							}
+						},
+						error: function (xhrReq, status, error) {
+							alert(xhrReq + ", " + status + ", " + error);
+						}
+					});
+				}
+			});
+
+			$(document).on('click', ".delbtn", function () { //삭제 버튼 누른 경우
+				$.ajax({
+					type: 'get',
+					url: 'delete.do',
+					dataType: 'json',
+					data: "id=" + $(this).attr("id"),
+					success: function (data) { //id값으로 보낸 후 삭제가 완료되면 다시 list를 불러온다.
+						getList(); //리스트 가져옴
+					},
+					error: function (xhrReq, status, error) {
+						alert(xhrReq + ", " + status + ", " + error);
+					}
+				});
+			});
+
+
+		});
+
+	</script>
+	<script type="text/javascript">
+
+		function getList() { //리스트 가져오는 메소드
+			$.ajax({
+				type: 'get',
+				url: 'list.do',
+				dataType: 'json',
+				success: function (data) {
+					var list = data.result; //받아온 리스트
+					$('#listTable tr:not(:first)').remove(); //이전 테이블 삭제
+					var str = '<tr>';
+					$.each(list, function (i) {
+						str += "<td>" + list[i].no + "</td><td>" + list[i].id + "</td><td>" + list[i].name + "</td><td>"
+							+ list[i].age + "</td><td>" + list[i].tel + "</td><td>" + list[i].addr;
+						str += "</td><td><input type=button class=delbtn value=삭제하기 id=" + list[i].id + "></td>";
+						str += "</tr>";
+					});
+					$('#listTable').append(str); //테이블에 노드 추가
+				},
+				error: function (xhrReq, status, error) {
+					alert(xhrReq + ", " + status + ", " + error);
+				}
+			});
+		}
+	</script>
+
+</head>
+
+<body>
+
+	<form name="inForm" method="post" id="inForm">
+		<table cellspacing="0">
+			<tr bgcolor="pink">
+				<th>아이디</th>
+				<th>이름</th>
+				<th>나이</th>
+				<th>전화번호</th>
+				<th>주소</th>
+			</tr>
+			<tr>
+				<td style="text-align: left"><input type="text" size="8" name="id" id="id"> <span
+						id="isDupli">중복결과여부</span></td>
+				<td><input type="text" size="8" name="name" id="name"></td>
+				<td><input type="text" size="4" name="age" id="age"></td>
+				<td><input type="text" size="12" name="tel" id="tel"></td>
+				<td><input type="text" size="30" name="addr" id="addr"></td>
+			</tr>
+			<tr>
+				<td colspan="5" align="center">
+					<input type="button" id="joinBtn" value="가입하기"></td>
+			</tr>
+		</table>
+	</form>
+	<br>
+	<hr color="red">
+
+	<h2>고객 리스트 !</h2>
+	<table id="listTable" cellspacing="0">
+		<tr bgcolor="pink">
+			<th>번호</th>
+			<th>아이디</th>
+			<th>이름</th>
+			<th>나이</th>
+			<th>전화번호</th>
+			<th>주소</th>
+			<th>삭제</th>
+		</tr>
+	</table>
+</body>
+
+</body>
+
+</html>
